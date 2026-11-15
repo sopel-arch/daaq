@@ -63,22 +63,6 @@ button{font:inherit;font-weight:600;border-radius:8px;padding:11px 20px;cursor:p
 .scoring ul{margin:0;padding-left:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:4px 24px}
 .vals{display:flex;align-items:baseline;gap:14px}
 .avg{color:var(--avg);font-weight:600;font-size:.95rem}
-@media print{
-  :root:root:root{--bg:#fff;--surface:#fff;--fg:#000;--muted:#444;--line:#bbb;--accent:#1d5f7a;--avg:#9a4318;color-scheme:light}
-  body{padding:0}
-  .intro,.scoring,.note,.progress,.actions,footer p:first-child,.sub{display:none!important}
-  main{max-width:none;gap:18px}
-  header{order:-3} .fields{order:-2} #result{order:-1}
-  fieldset.q{break-inside:avoid;padding:8px 0;border:0;border-bottom:1px solid #ccc;border-radius:0;background:#fff}
-  fieldset.q legend{margin-bottom:4px;font-size:.9rem}
-  .opts{gap:2px}
-  .opts label{border:0;padding:1px 0;font-weight:400;font-size:.88rem;background:transparent!important}
-  .opts label:has(input:checked){font-weight:700}
-  .opts input{display:inline-block;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .sec-head{break-after:avoid}
-  #result{border-top:2px solid #000}
-  input[type=text]{border:0;border-bottom:1px solid #888;border-radius:0;padding:2px 0}
-}
 footer{border-top:1px solid var(--line);padding-top:16px;display:flex;flex-direction:column;gap:8px;font-size:.82rem;color:var(--muted)}
 </style>
 
@@ -250,12 +234,8 @@ function render(){
     html+='<div class="scale"><div class="scale-top"><span>'+s.name+' ('+s.range.toLowerCase()+')</span><span class="vals"><strong>'+sc+'</strong><b class="avg">среднее: '+s.avg+'</b></span></div></div>';
   });
   html+='<p class="small">Балл раздела равен сумме баллов за его вопросы. Среднее — это среднее значение из исследования. Наименьший возможный балл раздела равен числу его вопросов. Максимум учитывает правило для вопроса 5: «Часто» и «Всегда» дают по 4 балла. Более высокие баллы означают более выраженные трудности, связанные с ПИТ. Результат не является диагнозом: с ним стоит прийти к специалисту.</p>';
-  html+='<div class="actions" id="pdf-wrap"><button class="primary" id="pdf" type="button">Сохранить в PDF</button><span class="small">Откроется окно печати: выберите «Сохранить как PDF».</span></div>';
   r.innerHTML=html;
 }
-document.addEventListener('click',function(e){
-  if(e.target&&e.target.id==='pdf'){ try{ window.print(); }catch(x){} }
-});
 document.getElementById('show').addEventListener('click',function(){
   render(); document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
 });
