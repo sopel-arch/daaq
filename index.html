@@ -1,0 +1,248 @@
+<title>Опросник DAAQ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Onest:wght@500;600;700&display=swap">
+<style>
+/* Layout: одна колонка 720px, три раздела с вопросами, итоги с полосами шкал */
+:root{
+  --bg:#f5f7f8; --surface:#ffffff; --fg:#17232b; --muted:#5a6a74; --line:#d9e1e5;
+  --accent:#1d5f7a; --accent-soft:#e1eff4; --accent-fg:#ffffff; --avg:#b4572a;
+  --font-display:'Onest','Inter',system-ui,sans-serif; --font-body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f171c; --surface:#16222a; --fg:#e6edf1; --muted:#9bacb6; --line:#2a3b46;
+  --accent:#6bb7d3; --accent-soft:#1b3340; --accent-fg:#0b1a21; --avg:#e08a5b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f171c; --surface:#16222a; --fg:#e6edf1; --muted:#9bacb6; --line:#2a3b46;
+  --accent:#6bb7d3; --accent-soft:#1b3340; --accent-fg:#0b1a21; --avg:#e08a5b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.55;
+  padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1,h2{font-family:var(--font-display);text-wrap:balance;line-height:1.2;margin:0}
+h1{font-size:clamp(1.6rem,5vw,2.2rem);font-weight:700}
+h2{font-size:1.25rem;font-weight:600}
+p{margin:0}
+.sub{color:var(--muted);margin-top:6px}
+.intro{display:flex;flex-direction:column;gap:12px;color:var(--muted);font-size:.95rem}
+details.more summary{cursor:pointer;color:var(--accent);font-weight:500}
+details.more div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.fields label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted)}
+input[type=text]{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 11px;min-width:0}
+input[type=text]:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.note{background:var(--accent-soft);border-radius:8px;padding:12px 14px;font-size:.95rem}
+.progress{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;font-size:.85rem;color:var(--muted)}
+.bar{flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.sec{display:flex;flex-direction:column;gap:14px}
+.sec-head{display:flex;flex-direction:column;gap:2px;padding-top:6px}
+.sec-head span{font-size:.85rem;color:var(--muted)}
+fieldset.q{border:1px solid var(--line);background:var(--surface);border-radius:10px;margin:0;padding:16px;min-width:0}
+fieldset.q legend{padding:0;float:left;width:100%;font-weight:500;margin-bottom:12px}
+.opts{clear:both;display:flex;flex-direction:column;gap:8px}
+.opts label{position:relative;display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:9px 11px;cursor:pointer;font-size:.92rem;min-width:0}
+.opts input{accent-color:var(--accent);margin:0;flex:none}
+.opts label:has(input:checked){background:var(--accent-soft);border-color:var(--accent);font-weight:500}
+.opts label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+button{font:inherit;font-weight:600;border-radius:8px;padding:11px 20px;cursor:pointer;border:1px solid var(--accent)}
+.primary{background:var(--accent);color:var(--accent-fg)}
+.primary:disabled{opacity:.45;cursor:not-allowed}
+.ghost{background:transparent;color:var(--accent)}
+#result{display:flex;flex-direction:column;gap:20px;border-top:2px solid var(--fg);padding-top:24px}
+.scale{display:flex;flex-direction:column;gap:8px}
+.scale-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.scale-top strong{font-family:var(--font-display);font-size:1.7rem;font-variant-numeric:tabular-nums}
+.track{position:relative;height:14px;background:var(--line);border-radius:7px}
+.fill{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:7px}
+.mark{position:absolute;top:-5px;bottom:-5px;width:3px;background:var(--avg);border-radius:2px}
+.legend{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.legend b{color:var(--avg);font-weight:600}
+.small{font-size:.88rem;color:var(--muted)}
+.scoring{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.scoring ul{margin:0;padding-left:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:4px 24px}
+.vals{display:flex;align-items:baseline;gap:14px}
+.avg{color:var(--avg);font-weight:600;font-size:.95rem}
+footer{border-top:1px solid var(--line);padding-top:16px;display:flex;flex-direction:column;gap:8px;font-size:.82rem;color:var(--muted)}
+</style>
+
+<main>
+  <header>
+    <h1>Опросник по Избеганию Требований и Автономии</h1>
+    <p class="sub">Demand Avoidance and Autonomy Questionnaire - DAAQ</p>
+  </header>
+
+  <section class="intro">
+    <p>DAAQ разработан исследователями медицинской школы Мичиганского университета, Северо-Западного университета и организации At Peace Parents. Это первый инструмент для оценки патологического избегания требований (ПИТ), созданный в соответствии со строгими современными стандартами разработки методик измерения. Он уникален тем, что оценивает, как избегание требований влияет на удовлетворение базовых потребностей (например, гигиена, питание, сон и туалет), не останавливаясь только на общем описании поведения.</p>
+    <p>Хотя баллы DAAQ демонстрируют сильные предварительные психометрические свойства, DAAQ рекомендуется использовать как инструмент скрининга и фенотипирования в исследованиях, но не как диагностический инструмент.</p>
+    <details class="more"><summary>Подробнее об опроснике</summary>
+      <div>
+        <p>При ссылке на DAAQ в исследованиях, пожалуйста, указывайте авторов: Ноэль Карлоцци, доктор философии (Ph.D.), и Кейси Эрлих, доктор философии (Ph.D.). Впервые DAAQ был опубликован в журнале PLOS ONE.</p>
+        <p>Данная форма DAAQ предоставлена At Peace Parents, организацией, которая проводит обучение и образовательные программы для родителей детей и подростков с ПИТ и предполагаемым ПИТ. Она предназначена для того, чтобы клиницисты передавали её родителям детей или подростков 4–17 лет с предполагаемым ПИТ для самостоятельного заполнения.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="scoring">
+    <h2>Инструкция по подсчёту баллов</h2>
+    <p>Каждому варианту ответа соответствует числовое значение:</p>
+    <ul>
+      <li>Никогда = 1</li>
+      <li>Полностью не согласен(на) = 1</li>
+      <li>Редко = 2</li>
+      <li>Не согласен(на) = 2</li>
+      <li>Иногда = 3</li>
+      <li>Скорее не согласен(на) = 3</li>
+      <li>Часто = 4</li>
+      <li>Скорее согласен(на) = 4</li>
+      <li>Всегда = 5*</li>
+      <li>Согласен(на) = 5</li>
+      <li>Полностью согласен(на) = 6</li>
+    </ul>
+    <p class="small">*По вопросу 5 ответы «Часто» и «Всегда» оба оцениваются в 4 балла.</p>
+  </section>
+
+  <section class="fields">
+    <label for="f-parent">Имя родителя<input id="f-parent" type="text" autocomplete="off"></label>
+    <label for="f-date">Дата<input id="f-date" type="text" autocomplete="off"></label>
+    <label for="f-child">Имя ребёнка<input id="f-child" type="text" autocomplete="off"></label>
+    <label for="f-age">Возраст ребёнка<input id="f-age" type="text" autocomplete="off"></label>
+  </section>
+
+  <p class="note">Родителям: пожалуйста, заполните этот опросник, выбрав один ответ в каждом вопросе. Ответы остаются только в вашем браузере и никуда не отправляются.</p>
+
+  <div class="progress" aria-live="polite"><span id="count">0 из 36</span><div class="bar"><i id="bar"></i></div></div>
+
+  <form id="form" class="sec" style="gap:28px"></form>
+
+  <div class="actions">
+    <button class="primary" id="show" type="button" disabled>Показать результат</button>
+    <button class="ghost" id="reset" type="button">Начать заново</button>
+    <span class="small" id="hint">Результат по разделу появляется, когда отвечены все его вопросы.</span>
+  </div>
+
+  <section id="result" hidden aria-live="polite"></section>
+
+  <footer>
+    <p>Более высокие баллы означают более выраженные трудности, связанные с ПИТ. Средние значения получены в рецензируемом исследовании с участием 700 детей и подростков с предполагаемым или подтверждённым ПИТ. Обратите внимание: не у всех детей и подростков с ПИТ есть трудности с туалетом, а баллы могут меняться со временем. Результат не является диагнозом.</p>
+    <p>The DAAQ is ©2025 Noelle E. Carlozzi, Ph.D. and Casey Ehrlich, Ph.D. It and its items, instructions, and scoring materials, are licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0).</p>
+    <p>DAAQ © 2025 Noelle E. Carlozzi, Ph.D., и Casey Ehrlich, Ph.D. Опросник, его пункты, инструкции и материалы для подсчёта баллов распространяются по лицензии Creative Commons «Attribution 4.0 International» (CC BY 4.0), то есть «Атрибуция 4.0 Всемирная». Данная страница содержит русский перевод оригинального опросника.</p>
+  </footer>
+</main>
+
+<script>
+var FREQ=['Никогда','Редко','Иногда','Часто','Всегда'];
+var AGREE=['Полностью не согласен(на)','Не согласен(на)','Скорее не согласен(на)','Скорее согласен(на)','Согласен(на)','Полностью согласен(на)'];
+var A={13:1,15:1,17:1,21:1,22:1,24:1,27:1,29:1,30:1,31:1,32:1,33:1};
+var T=[
+"Во время игры мой ребёнок сильно расстраивается (теряет эмоциональное равновесие / раздражается), если он не выигрывает.",
+"Моему ребёнку трудно переключаться на любимое занятие.",
+"Если я пытаюсь побудить ребёнка участвовать в занятиях, которые ему не нравятся, он сильно расстраивается (теряет эмоциональное равновесие / раздражается) и/или у него случается срыв (паническая атака / истерика).",
+"Когда ребёнок оказывается в стрессовой для него ситуации, он ведёт себя неподобающим образом (смеётся или говорит что-то неуместное, снимает одежду, издаёт неуместные звуки или шумы, использует бессмысленные слова, повторяет слова).",
+"Мой ребёнок сильно расстраивается (теряет эмоциональное равновесие / раздражается), когда ему говорят, что нужно прекратить любимое занятие (например, время у экрана).",
+"Мой ребёнок будет отказываться от помощи, даже после того как сам попросил о ней.",
+"Когда ребёнку говорят что-то сделать, он отвечает «Я не могу» или «Мне нехорошо», игнорирует просьбу, делает вид, что не понимает, меняет тему, притворяется, что не слышит, начинает заниматься чем-то посторонним, изображает животное или выходит из комнаты.",
+"Мой ребёнок ломает/портит свои собственные вещи.",
+"Когда ребёнок чем-то взбудоражен (например, праздником), он сильно расстраивается (теряет эмоциональное равновесие / раздражается).",
+"Мой ребёнок проявляет радость или энтузиазм по поводу чего-то, но отказывается участвовать, когда приходит время (выйти из дома, зайти в здание или на мероприятие).",
+"В ответ на «Нет», «Прекрати» или «Нельзя» мой ребёнок делает наоборот, даже если это опасно (бежит к дороге, трогает горячую плиту, лезет на высокий выступ).",
+"Когда ребёнок не добивается своего, он реагирует так: сбрасывает что-нибудь, кричит, обзывается, должен оставить за собой последнее слово или ломает что-либо.",
+"Моему ребёнку нравится находиться физически выше других людей (например, сидеть или стоять выше окружающих, вставать на стулья или диван, залезать на подоконники, садиться на спинку дивана).",
+"Когда я задаю ребёнку прямой вопрос, он отвечает рычанием или шипением, словами «Не знаю» или «Замолчи», молчанием либо глупым словом, например «какашка».",
+"Мой ребёнок нарушает правила или игнорирует их, но расстраивается, если другие их не соблюдают.",
+"Когда я говорю ребёнку что-то сделать, он отвечает рычанием или шипением, словами «Не знаю» или «Перестань разговаривать», молчанием либо глупым словом, например «какашка».",
+"Моему ребёнку постоянно нужно внимание, иначе он сильно расстраивается (теряет эмоциональное равновесие / раздражается) или у него случается срыв (паническая атака / истерика).",
+"Если ребёнок не занят любимым делом (например, не сидит в телефоне или планшете и не занимается своим особым интересом), он сильно расстраивается (теряет эмоциональное равновесие / раздражается) или у него случается срыв (паническая атака / истерика), когда я пытаюсь поговорить с другим человеком.",
+"Если ребёнок не занят любимым делом (например, не сидит в телефоне или планшете и не занимается своим особым интересом) и не находится с кем-то, кому он доверяет, он сильно расстраивается (теряет эмоциональное равновесие / раздражается) или у него случается срыв (паническая атака / истерика), когда я ухожу.",
+"Мой ребёнок хочет, чтобы я находился(лась) рядом, но не хочет, чтобы я к нему прикасался(лась) или взаимодействовал(а) с ним.",
+"Моему ребёнку нужно самому контролировать, когда, где и/или что он ест.",
+"Мой ребёнок ест только предпочитаемую еду.",
+"Мой ребёнок сопротивляется сну.",
+"Моему ребёнку нужно самому контролировать, когда и/или где он спит.",
+"У моего ребёнка нерегулярный режим сна (например, он ложится спать и просыпается в разное время каждую ночь/каждый день).",
+"Мой ребёнок сопротивляется купанию или принятию душа.",
+"Моему ребёнку нужно самому контролировать, когда и/или где и/или как он купается или принимает душ.",
+"Мой ребёнок сопротивляется чистке зубов.",
+"Моему ребёнку нужно самому контролировать, когда и/или где и/или как он чистит зубы.",
+"Моему ребёнку нужно самому контролировать, когда и/или где и/или как он расчёсывает волосы.",
+"Мой ребёнок сопротивляется походам в туалет.",
+"Моему ребёнку нужно самому контролировать, когда и/или где он ходит в туалет (или ему меняют подгузник).",
+"Мой ребёнок утратил навыки, связанные с туалетом (снова нуждается в подгузнике, ходит в туалет вне туалета или в определённом месте, например в ванне, либо полностью отказывается).",
+"У моего ребенка случаются казусы с туалетом (не успевает дойти до туалета)",
+"Когда мой ребёнок расстраивается (теряет эмоциональную регуляцию / взволнован), его способность самостоятельно пользоваться туалетом снижается (вытереться, сходить в туалет одному).",
+"Мой ребёнок сдерживает мочеиспускание (моча) или дефекацию (какашки)."
+];
+var SECS=[
+ {id:'b',name:'Поведенческие проявления',range:'Вопросы 1–20',from:1,to:20,avg:73},
+ {id:'n',name:'Базовые потребности',range:'Вопросы 21–30',from:21,to:30,avg:44},
+ {id:'t',name:'Туалет',range:'Вопросы 31–36',from:31,to:36,avg:17}
+];
+var ans={}, KEY='daaq-ru-v1';
+function maxOf(n){ if(n===5) return 4; return A[n]?6:5; }
+function val(n){ var i=ans[n]; if(i===undefined) return null; return Math.min(i+1,maxOf(n)); }
+try{ var s=localStorage.getItem(KEY); if(s) ans=JSON.parse(s)||{}; }catch(e){}
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(ans)); }catch(e){} }
+
+var form=document.getElementById('form');
+SECS.forEach(function(sec){
+  var w=document.createElement('section'); w.className='sec';
+  var h=document.createElement('div'); h.className='sec-head';
+  h.innerHTML='<h2>'+sec.name+'</h2><span>'+sec.range+'</span>'; w.appendChild(h);
+  for(var n=sec.from;n<=sec.to;n++){
+    var f=document.createElement('fieldset'); f.className='q';
+    var lg=document.createElement('legend'); lg.textContent=n+'. '+T[n-1]; f.appendChild(lg);
+    var o=document.createElement('div'); o.className='opts';
+    (A[n]?AGREE:FREQ).forEach(function(lab,i){
+      var l=document.createElement('label'); var r=document.createElement('input');
+      r.type='radio'; r.name='q'+n; r.value=i; r.dataset.n=n;
+      if(ans[n]===i) r.checked=true;
+      l.appendChild(r); l.appendChild(document.createTextNode(lab)); o.appendChild(l);
+    });
+    f.appendChild(o); w.appendChild(f);
+  }
+  form.appendChild(w);
+});
+
+function secDone(s){ for(var n=s.from;n<=s.to;n++){ if(ans[n]===undefined) return false; } return true; }
+function secScore(s){ var t=0; for(var n=s.from;n<=s.to;n++) t+=val(n); return t; }
+function secMax(s){ var t=0; for(var n=s.from;n<=s.to;n++) t+=maxOf(n); return t; }
+
+function refresh(){
+  var c=Object.keys(ans).length;
+  document.getElementById('count').textContent=c+' из 36';
+  document.getElementById('bar').style.width=(c/36*100)+'%';
+  document.getElementById('show').disabled=!SECS.some(secDone);
+}
+form.addEventListener('change',function(e){
+  var t=e.target; if(t.type!=='radio') return;
+  ans[+t.dataset.n]=+t.value; save(); refresh();
+  if(!document.getElementById('result').hidden) render();
+});
+
+function render(){
+  var r=document.getElementById('result'); r.hidden=false;
+  var html='<h2>Результат</h2>';
+  SECS.forEach(function(s){
+    if(!secDone(s)){
+      var got=0; for(var k=s.from;k<=s.to;k++){ if(ans[k]!==undefined) got++; }
+      var tot=s.to-s.from+1;
+      html+='<div class="scale"><div class="scale-top"><span>'+s.name+' ('+s.range.toLowerCase()+')</span><span class="vals"><strong>—</strong><b class="avg">среднее: '+s.avg+'</b></span></div>'
+        +'<p class="small">Балл не рассчитан: отвечено '+got+' из '+tot+' вопросов раздела.</p></div>';
+      return;
+    }
+    var sc=secScore(s);
+    html+='<div class="scale"><div class="scale-top"><span>'+s.name+' ('+s.range.toLowerCase()+')</span><span class="vals"><strong>'+sc+'</strong><b class="avg">среднее: '+s.avg+'</b></span></div></div>';
+  });
+  html+='<p class="small">Балл раздела равен сумме баллов за его вопросы. Среднее — это среднее значение из исследования. Наименьший возможный балл раздела равен числу его вопросов. Максимум учитывает правило для вопроса 5: «Часто» и «Всегда» дают по 4 балла. Более высокие баллы означают более выраженные трудности, связанные с ПИТ. Результат не является диагнозом: с ним стоит прийти к специалисту.</p>';
+  r.innerHTML=html;
+}
+document.getElementById('show').addEventListener('click',function(){
+  render(); document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
+});
+document.getElementById('reset').addEventListener('click',function(){
+  ans={}; save();
+  Array.prototype.forEach.call(form.querySelectorAll('input'),function(i){i.checked=false;});
+  document.getElementById('result').hidden=true; refresh(); window.scrollTo({top:0,behavior:'smooth'});
+});
+refresh();
+</script>
